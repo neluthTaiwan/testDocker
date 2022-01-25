@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: my-first-pipeline-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.10, pipelines.kubeflow.org/pipeline_compilation_time: '2022-01-25T11:06:16.078832',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "A R pipeline.", "name":
+      "my-first-pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.10}
+spec:
+  entrypoint: my-first-pipeline
+  templates:
+  - name: my-first-pipeline
+    dag:
+      tasks:
+      - {name: xgboost4j-train-classifier, template: xgboost4j-train-classifier}
+  - name: xgboost4j-train-classifier
+    container:
+      args: []
+      command: [--out-csv, /tmp/outputs/csv/data]
+      image: C:/Users/e.thieu/Documents/ALSTOM/dockerv3/imagetest
+    outputs:
+      artifacts:
+      - {name: xgboost4j-train-classifier-csv, path: /tmp/outputs/csv/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.10
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "Trains
+          a boosted tree ensemble classifier using xgboost4j", "implementation": {"container":
+          {"command": ["--out-csv", {"outputPath": "csv"}], "image": "C:/Users/e.thieu/Documents/ALSTOM/dockerv3/imagetest"}},
+          "name": "xgboost4j - Train classifier", "outputs": [{"description": "CSV
+          retour", "name": "csv", "type": "CSV"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "123b368b78275f33b8f26ac40d33aa865a2c3a3d5a1dabf98735eafa45110e0b", "url":
+          "composant.yml"}'}
+  arguments:
+    parameters: []
+  serviceAccountName: pipeline-runner

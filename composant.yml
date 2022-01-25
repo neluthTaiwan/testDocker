@@ -1,0 +1,12 @@
+name: xgboost4j - Train classifier
+description: Trains a boosted tree ensemble classifier using xgboost4j
+
+outputs:
+- {name: csv, type: CSV, description: 'CSV retour'}
+
+implementation:
+  container:
+    image: C:/Users/e.thieu/Documents/ALSTOM/dockerv3/imagetest
+    command: [
+      --out-csv, {outputPath: csv},
+    ]
