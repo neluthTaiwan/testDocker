@@ -1,0 +1,84 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: my-scond-pipeline-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11, pipelines.kubeflow.org/pipeline_compilation_time: '2022-01-27T09:58:27.392752',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "A R pipeline.", "name":
+      "my-scond-pipeline"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11}
+spec:
+  entrypoint: my-scond-pipeline
+  templates:
+  - name: my-scond-pipeline
+    dag:
+      tasks:
+      - {name: test, template: test}
+      - name: test-2
+        template: test-2
+        dependencies: [test]
+        arguments:
+          artifacts:
+          - {name: test-Output-1, from: '{{tasks.test.outputs.artifacts.test-Output-1}}'}
+  - name: test
+    container:
+      args: []
+      command:
+      - sh
+      - -c
+      - |
+        output_path="$0"
+        mkdir -p "$(dirname "$output_path")"
+        Rscript /script.R --out $output_path
+      - /tmp/outputs/Output_1/data
+      image: lnatestdocker/testdock2:latest
+    outputs:
+      artifacts:
+      - {name: test-Output-1, path: /tmp/outputs/Output_1/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "write
+          a csv", "implementation": {"container": {"command": ["sh", "-c", "output_path=\"$0\"\nmkdir
+          -p \"$(dirname \"$output_path\")\"\nRscript /script.R --out $output_path\n",
+          {"outputPath": "Output 1"}], "image": "lnatestdocker/testdock2:latest"}},
+          "name": "test", "outputs": [{"name": "Output 1"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "3ace861387e67df14282089c9e77b2629d9de1998c0da3a1def490cf443e8ad0", "url":
+          "composant.yml"}'}
+  - name: test-2
+    container:
+      args: []
+      command:
+      - sh
+      - -c
+      - |
+        input_path="$0"
+        output_path="$1"
+        mkdir -p "$(dirname "$output_path")"
+        Rscript /script2.R --file input_path --out $output_path
+      - /tmp/inputs/Input_1/data
+      - /tmp/outputs/Output_1/data
+      image: lnatestdocker/testdock2:script2v2
+    inputs:
+      artifacts:
+      - {name: test-Output-1, path: /tmp/inputs/Input_1/data}
+    outputs:
+      artifacts:
+      - {name: test-2-Output-1, path: /tmp/outputs/Output_1/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"description": "write
+          a csv", "implementation": {"container": {"command": ["sh", "-c", "input_path=\"$0\"\noutput_path=\"$1\"\nmkdir
+          -p \"$(dirname \"$output_path\")\"\nRscript /script2.R --file input_path
+          --out $output_path\n", {"inputPath": "Input 1"}, {"outputPath": "Output
+          1"}], "image": "lnatestdocker/testdock2:script2v2"}}, "inputs": [{"name":
+          "Input 1"}], "name": "test", "outputs": [{"name": "Output 1"}]}', pipelines.kubeflow.org/component_ref: '{"digest":
+          "df08a81da98d8fb57439de634d65b8a5c486d07a8f7497443d8b80ef2a522358", "url":
+          "composants2.yml"}'}
+  arguments:
+    parameters: []
+  serviceAccountName: pipeline-runner
